@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,7 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreditRules } from "@/contexts/CreditRulesContext";
-import { CreditRule, RuleSource, ClientType, CreditRuleAction } from "@/types/creditRules";
+import { CreditRule, RuleSource, ClientType, CreditRuleAction, ruleTemplates } from "@/types/creditRules";
 import { ActionBadge } from "./ActionBadge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -59,6 +59,15 @@ const RuleDialog: React.FC<RuleDialogProps> = ({
 
   const updateField = (field: keyof CreditRule, value: any) => {
     setRuleData({ ...ruleData, [field]: value });
+  };
+
+  // Auto-fill condition when description is selected
+  const handleDescriptionChange = (description: string) => {
+    const template = ruleTemplates.find(t => t.description === description);
+    if (template) {
+      updateField("description", description);
+      updateField("condition", template.condition);
+    }
   };
 
   const handleSubmit = () => {
@@ -126,19 +135,27 @@ const RuleDialog: React.FC<RuleDialogProps> = ({
                       <SelectItem value="УБКІ">УБКІ</SelectItem>
                       <SelectItem value="Вертекс">Вертекс</SelectItem>
                       <SelectItem value="Скаріста">Скаріста</SelectItem>
-                      <SelectItem value="1-хард рул">1-хард рул</SelectItem>
-                      <SelectItem value="2-додаткові">2-додаткові</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="description">Опис правила</Label>
-                  <Input
-                    id="description"
+                  <Select
                     value={ruleData.description}
-                    onChange={(e) => updateField("description", e.target.value)}
-                  />
+                    onValueChange={handleDescriptionChange}
+                  >
+                    <SelectTrigger id="description">
+                      <SelectValue placeholder="Виберіть опис правила" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ruleTemplates.map((template) => (
+                        <SelectItem key={template.description} value={template.description}>
+                          {template.description}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
@@ -147,6 +164,7 @@ const RuleDialog: React.FC<RuleDialogProps> = ({
                     id="condition"
                     value={ruleData.condition}
                     onChange={(e) => updateField("condition", e.target.value)}
+                    readOnly={ruleData.description !== ""}
                   />
                 </div>
 
@@ -300,19 +318,27 @@ const RuleDialog: React.FC<RuleDialogProps> = ({
                       <SelectItem value="УБКІ">УБКІ</SelectItem>
                       <SelectItem value="Вертекс">Вертекс</SelectItem>
                       <SelectItem value="Скаріста">Скаріста</SelectItem>
-                      <SelectItem value="1-хард рул">1-хард рул</SelectItem>
-                      <SelectItem value="2-додаткові">2-додаткові</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="edit-description">Опис правила</Label>
-                  <Input
-                    id="edit-description"
+                  <Select
                     value={ruleData.description}
-                    onChange={(e) => updateField("description", e.target.value)}
-                  />
+                    onValueChange={handleDescriptionChange}
+                  >
+                    <SelectTrigger id="edit-description">
+                      <SelectValue placeholder="Виберіть опис правила" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ruleTemplates.map((template) => (
+                        <SelectItem key={template.description} value={template.description}>
+                          {template.description}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
@@ -321,6 +347,7 @@ const RuleDialog: React.FC<RuleDialogProps> = ({
                     id="edit-condition"
                     value={ruleData.condition}
                     onChange={(e) => updateField("condition", e.target.value)}
+                    readOnly={ruleData.description !== ""}
                   />
                 </div>
 
