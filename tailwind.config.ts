@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,14 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Credit rule action colors
+				"action-refusal": "#ea384c",
+				"action-issuance": "#22c55e",
+				"action-underwriting": "#eab308",
+				"action-refusal-bg": "#fee2e2",
+				"action-issuance-bg": "#dcfce7",
+				"action-underwriting-bg": "#fef9c3",
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
