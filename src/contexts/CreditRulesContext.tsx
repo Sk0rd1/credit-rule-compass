@@ -2,7 +2,7 @@
 import React, { createContext, useState, useContext, ReactNode } from "react";
 import { CreditRule, RuleSource, ClientType, CreditRuleAction } from "@/types/creditRules";
 import { sampleRules } from "@/data/sampleRules";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "@/lib/toast";
 
 interface CreditRulesContextType {
   rules: CreditRule[];

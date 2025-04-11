@@ -2,10 +2,9 @@
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
-import { registerLocale } from 'date-fns';
 import { uk } from 'date-fns/locale';
 
-// Register Ukrainian locale for date-fns
-registerLocale('uk', uk);
+// Set up the application with Ukrainian locale support
+// Note: We no longer need registerLocale as it's not exported by date-fns
 
 createRoot(document.getElementById("root")!).render(<App />);
