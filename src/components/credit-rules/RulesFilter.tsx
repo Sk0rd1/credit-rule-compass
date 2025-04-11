@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -51,8 +50,6 @@ export const RulesFilter: React.FC = () => {
             <SelectItem value="УБКІ">УБКІ</SelectItem>
             <SelectItem value="Вертекс">Вертекс</SelectItem>
             <SelectItem value="Скаріста">Скаріста</SelectItem>
-            <SelectItem value="1-хард рул">1-хард рул</SelectItem>
-            <SelectItem value="2-додаткові">2-додаткові</SelectItem>
           </SelectContent>
         </Select>
 

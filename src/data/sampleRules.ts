@@ -3,20 +3,6 @@ import { CreditRule } from "@/types/creditRules";
 
 export const sampleRules: CreditRule[] = [
   {
-    id: 1,
-    description: "Заборонені біни карт",
-    condition: "Біни карт",
-    conditionValue: "409035, 515753, 516874",
-    action: "Відмова",
-    priority: 1,
-    isActive: true,
-    clientType: "Всі",
-    creditProduct: "Всі",
-    startDate: "2023-01-01",
-    endDate: null,
-    source: "1-хард рул",
-  },
-  {
     id: 2,
     description: "Прострочений борг",
     condition: "UBKI score",
@@ -115,20 +101,6 @@ export const sampleRules: CreditRule[] = [
     source: "Скаріста",
   },
   {
-    id: 9,
-    description: "Військова анкета галузь",
-    condition: "Військова анкета галузь",
-    conditionValue: "true",
-    action: "Відмова",
-    priority: 9,
-    isActive: true,
-    clientType: "Всі",
-    creditProduct: "Всі",
-    startDate: "2023-01-01",
-    endDate: null,
-    source: "2-додаткові",
-  },
-  {
     id: 10,
     description: "МФО скор",
     condition: "UBKI score",
@@ -141,19 +113,5 @@ export const sampleRules: CreditRule[] = [
     startDate: "2023-01-01",
     endDate: null,
     source: "УБКІ",
-  },
-  {
-    id: 11,
-    description: "Заборонені біни карт + скор 200+",
-    condition: "Біни карт, UBKI score",
-    conditionValue: "516874, >200",
-    action: "Андеррайтинг",
-    priority: 11,
-    isActive: true,
-    clientType: "Всі",
-    creditProduct: "Онлайн",
-    startDate: "2023-01-01",
-    endDate: null,
-    source: "1-хард рул",
-  },
+  }
 ];
