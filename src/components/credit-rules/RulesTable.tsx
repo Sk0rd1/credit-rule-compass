@@ -28,6 +28,21 @@ export const RulesTable: React.FC = () => {
     return format(new Date(dateString), "dd.MM.yyyy", { locale: uk });
   };
 
+  const getConditionText = (rule: CreditRule) => {
+    if (!rule.conditions || rule.conditions.length === 0) return "";
+    return rule.conditions.map(c => c.condition).join(", ");
+  };
+
+  const getConditionValue = (rule: CreditRule) => {
+    if (!rule.conditions || rule.conditions.length === 0) return "";
+    return rule.conditions.map(c => c.value).join(", ");
+  };
+
+  const getValueType = (rule: CreditRule) => {
+    if (!rule.conditions || rule.conditions.length === 0) return "";
+    return rule.conditions.map(c => c.valueType).join(", ");
+  };
+
   return (
     <div className="rounded-md border">
       <Table>
@@ -37,6 +52,7 @@ export const RulesTable: React.FC = () => {
             <TableHead>Опис правила</TableHead>
             <TableHead>Умова</TableHead>
             <TableHead>Значення</TableHead>
+            <TableHead>Тип значення</TableHead>
             <TableHead className="text-center">Дія</TableHead>
             <TableHead className="text-center">Пріоритет</TableHead>
             <TableHead className="text-center">Активно</TableHead>
@@ -50,7 +66,7 @@ export const RulesTable: React.FC = () => {
         <TableBody>
           {filteredRules.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={12} className="h-24 text-center">
+              <TableCell colSpan={13} className="h-24 text-center">
                 Правила не знайдено.
               </TableCell>
             </TableRow>
@@ -59,8 +75,9 @@ export const RulesTable: React.FC = () => {
               <TableRow key={rule.id}>
                 <TableCell className="text-center font-medium">{rule.id}</TableCell>
                 <TableCell>{rule.description}</TableCell>
-                <TableCell>{rule.condition}</TableCell>
-                <TableCell>{rule.conditionValue}</TableCell>
+                <TableCell>{getConditionText(rule)}</TableCell>
+                <TableCell>{getConditionValue(rule)}</TableCell>
+                <TableCell>{getValueType(rule)}</TableCell>
                 <TableCell className="text-center">
                   <ActionBadge action={rule.action} />
                 </TableCell>

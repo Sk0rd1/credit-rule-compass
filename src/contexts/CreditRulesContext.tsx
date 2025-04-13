@@ -34,11 +34,15 @@ export const CreditRulesProvider: React.FC<{ children: ReactNode }> = ({ childre
   const [filterAction, setFilterAction] = useState<CreditRuleAction | "Всі">("Всі");
 
   const filteredRules = rules.filter(rule => {
+    // Get condition text for search
+    const conditionText = rule.conditions?.map(c => c.condition).join(" ") || "";
+    const valueText = rule.conditions?.map(c => c.value).join(" ") || "";
+    
     const matchesText =
       filterText === "" ||
       rule.description.toLowerCase().includes(filterText.toLowerCase()) ||
-      rule.condition.toLowerCase().includes(filterText.toLowerCase()) ||
-      rule.conditionValue.toLowerCase().includes(filterText.toLowerCase());
+      conditionText.toLowerCase().includes(filterText.toLowerCase()) ||
+      valueText.toLowerCase().includes(filterText.toLowerCase());
     
     const matchesSource = filterSource === "Всі" || rule.source === filterSource;
     const matchesClientType = filterClientType === "Всі" || rule.clientType === filterClientType || rule.clientType === "Всі";

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,16 +27,26 @@ import {
   RuleSource, 
   ClientType, 
   CreditRuleAction, 
-  ruleTemplates, 
+  ruleTemplates,
+  ruleTemplatesBySource,
   getConditionTemplate,
   RuleCondition,
   ConditionValueType,
   createEmptyCondition,
-  LogicalOperator
+  LogicalOperator,
+  ConditionOperator,
+  getOperatorOptions,
+  getValueTypeName
 } from "@/types/creditRules";
 import { ActionBadge } from "./ActionBadge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Info } from "lucide-react";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface RuleDialogProps {
   mode: "add" | "edit";
@@ -44,16 +55,48 @@ interface RuleDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+const OperatorSelect = ({
+  valueType,
+  operator,
+  onChange
+}: {
+  valueType: ConditionValueType,
+  operator: ConditionOperator | undefined,
+  onChange: (value: ConditionOperator) => void
+}) => {
+  const operators = getOperatorOptions(valueType);
+
+  return (
+    <Select
+      value={operator || operators[0]}
+      onValueChange={(value) => onChange(value as ConditionOperator)}
+    >
+      <SelectTrigger className="w-24">
+        <SelectValue placeholder="Оператор" />
+      </SelectTrigger>
+      <SelectContent>
+        {operators.map((op) => (
+          <SelectItem key={op} value={op}>
+            {op}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+};
+
 const ConditionValueInput = ({ 
   condition, 
   value, 
   onChange,
+  onOperatorChange,
   onDataMissingChange, 
   isDataMissing = false 
 }: { 
   condition: RuleCondition, 
   value: string, 
   onChange: (value: string) => void,
+  onOperatorChange: (operator: ConditionOperator) => void,
   onDataMissingChange: (isMissing: boolean) => void,
   isDataMissing?: boolean
 }) => {
@@ -76,108 +119,185 @@ const ConditionValueInput = ({
     switch (template.valueType) {
       case "BOOLEAN":
         return (
-          <Select
-            value={value}
-            onValueChange={onChange}
-            disabled={isDataMissing}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Виберіть значення" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="true">Так</SelectItem>
-              <SelectItem value="false">Ні</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2 items-center">
+            <OperatorSelect 
+              valueType={template.valueType}
+              operator={condition.operator}
+              onChange={onOperatorChange}
+            />
+            <Select
+              value={value}
+              onValueChange={onChange}
+              disabled={isDataMissing}
+            >
+              <SelectTrigger className="flex-1">
+                <SelectValue placeholder="Виберіть значення" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="true">Так</SelectItem>
+                <SelectItem value="false">Ні</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         );
       
       case "DATE":
         return (
-          <Input
-            type="date"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            disabled={isDataMissing}
-          />
+          <div className="flex gap-2 items-center">
+            <OperatorSelect 
+              valueType={template.valueType}
+              operator={condition.operator}
+              onChange={onOperatorChange}
+            />
+            <Input
+              type="date"
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              disabled={isDataMissing}
+              className="flex-1"
+            />
+          </div>
         );
       
       case "DATE_RANGE":
         return (
           <div className="flex gap-2 items-center">
-            <Input
-              type="date"
-              value={value.split(" - ")[0] || ""}
-              onChange={(e) => {
-                const endDate = value.split(" - ")[1] || "";
-                onChange(`${e.target.value}${endDate ? " - " + endDate : ""}`);
-              }}
-              disabled={isDataMissing}
+            <OperatorSelect 
+              valueType={template.valueType}
+              operator={condition.operator}
+              onChange={onOperatorChange}
             />
-            <span>-</span>
-            <Input
-              type="date"
-              value={value.split(" - ")[1] || ""}
-              onChange={(e) => {
-                const startDate = value.split(" - ")[0] || "";
-                onChange(`${startDate}${startDate ? " - " : ""}${e.target.value}`);
-              }}
-              disabled={isDataMissing}
-            />
+            <div className="flex flex-1 gap-2 items-center">
+              <Input
+                type="date"
+                value={value.split(" - ")[0] || ""}
+                onChange={(e) => {
+                  const endDate = value.split(" - ")[1] || "";
+                  onChange(`${e.target.value}${endDate ? " - " + endDate : ""}`);
+                }}
+                disabled={isDataMissing}
+                className="flex-1"
+              />
+              <span>-</span>
+              <Input
+                type="date"
+                value={value.split(" - ")[1] || ""}
+                onChange={(e) => {
+                  const startDate = value.split(" - ")[0] || "";
+                  onChange(`${startDate}${startDate ? " - " : ""}${e.target.value}`);
+                }}
+                disabled={isDataMissing}
+                className="flex-1"
+              />
+            </div>
           </div>
         );
       
       case "ENUM":
         return (
-          <Select
-            value={value}
-            onValueChange={onChange}
-            disabled={isDataMissing}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Виберіть значення" />
-            </SelectTrigger>
-            <SelectContent>
-              {template.possibleValues?.map((val) => (
-                <SelectItem key={val} value={val}>{val}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2 items-center">
+            <OperatorSelect 
+              valueType={template.valueType}
+              operator={condition.operator}
+              onChange={onOperatorChange}
+            />
+            <Select
+              value={value}
+              onValueChange={onChange}
+              disabled={isDataMissing}
+              className="flex-1"
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Виберіть значення" />
+              </SelectTrigger>
+              <SelectContent>
+                {template.possibleValues?.map((val) => (
+                  <SelectItem key={val} value={val}>{val}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         );
       
       case "TEXT_LIST":
         return (
-          <Textarea
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={template.format || "Введіть список значень, розділених комами"}
-            disabled={isDataMissing}
-          />
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2 items-center">
+              <OperatorSelect 
+                valueType={template.valueType}
+                operator={condition.operator}
+                onChange={onOperatorChange}
+              />
+              <Textarea
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder={template.format || "Введіть список значень, розділених комами"}
+                disabled={isDataMissing}
+                className="flex-1"
+              />
+            </div>
+          </div>
+        );
+      
+      case "NUMBER":
+        return (
+          <div className="flex gap-2 items-center">
+            <OperatorSelect 
+              valueType={template.valueType}
+              operator={condition.operator}
+              onChange={onOperatorChange}
+            />
+            <Input
+              type="number"
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              placeholder={template.format || "Введіть число"}
+              disabled={isDataMissing}
+              className="flex-1"
+            />
+          </div>
         );
       
       case "COMBINED":
         return (
-          <Textarea
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={template.format || "Введіть комбіноване значення"}
-            disabled={isDataMissing}
-          />
+          <div className="flex flex-col gap-2">
+            <Textarea
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              placeholder={template.format || "Введіть комбіноване значення"}
+              disabled={isDataMissing}
+            />
+          </div>
         );
       
       default:
         return (
-          <Input
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={template.format || "Введіть значення"}
-            disabled={isDataMissing}
-          />
+          <div className="flex gap-2 items-center">
+            <OperatorSelect 
+              valueType={template.valueType}
+              operator={condition.operator}
+              onChange={onOperatorChange}
+            />
+            <Input
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              placeholder={template.format || "Введіть значення"}
+              disabled={isDataMissing}
+              className="flex-1"
+            />
+          </div>
         );
     }
   };
 
   return (
     <div className="space-y-4">
+      {template.ruleInfo && (
+        <div className="bg-muted/30 p-2 rounded-md text-sm text-muted-foreground flex items-start gap-2">
+          <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+          <span>{template.ruleInfo}</span>
+        </div>
+      )}
       {renderInput()}
       <div className="flex items-center space-x-2">
         <Checkbox 
@@ -227,6 +347,27 @@ const RuleDialog: React.FC<RuleDialogProps> = ({
         }
       : emptyRuleData
   );
+  
+  // State for available rule templates based on selected source
+  const [availableTemplates, setAvailableTemplates] = useState<RuleTemplate[]>(
+    ruleTemplatesBySource[ruleData.source as RuleSource] || []
+  );
+
+  // Update templates when source changes
+  useEffect(() => {
+    if (ruleData.source) {
+      setAvailableTemplates(ruleTemplatesBySource[ruleData.source as RuleSource] || []);
+      
+      // If we're not in edit mode, reset description and condition when source changes
+      if (mode === "add") {
+        setRuleData(prev => ({
+          ...prev,
+          description: "",
+          conditions: [createEmptyCondition()]
+        }));
+      }
+    }
+  }, [ruleData.source, mode]);
 
   const updateField = <K extends keyof CreditRule>(field: K, value: CreditRule[K]) => {
     setRuleData({ ...ruleData, [field]: value });
@@ -256,7 +397,7 @@ const RuleDialog: React.FC<RuleDialogProps> = ({
   };
 
   const handleDescriptionChange = (description: string) => {
-    const template = ruleTemplates.find(t => t.description === description);
+    const template = availableTemplates.find(t => t.description === description);
     if (template && ruleData.conditions && ruleData.conditions.length > 0) {
       updateField("description", description);
       
@@ -264,7 +405,8 @@ const RuleDialog: React.FC<RuleDialogProps> = ({
         ...ruleData.conditions[0],
         condition: template.condition,
         value: "",
-        valueType: template.valueType
+        valueType: template.valueType,
+        operator: getOperatorOptions(template.valueType)[0]
       };
       
       const updatedConditions = [updatedCondition];
@@ -350,16 +492,16 @@ const RuleDialog: React.FC<RuleDialogProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Опис правила</Label>
+                  <Label htmlFor="description">Правило</Label>
                   <Select
                     value={ruleData.description}
                     onValueChange={handleDescriptionChange}
                   >
                     <SelectTrigger id="description">
-                      <SelectValue placeholder="Виберіть опис правила" />
+                      <SelectValue placeholder="Виберіть правило" />
                     </SelectTrigger>
                     <SelectContent>
-                      {ruleTemplates.map((template) => (
+                      {availableTemplates.map((template) => (
                         <SelectItem key={template.description} value={template.description}>
                           {template.description}
                         </SelectItem>
@@ -368,95 +510,121 @@ const RuleDialog: React.FC<RuleDialogProps> = ({
                   </Select>
                 </div>
 
-                <div className="border p-4 rounded-md">
-                  {ruleData.conditions?.map((condition, index) => (
-                    <div key={index} className="space-y-4 mb-4">
-                      {index > 0 && (
-                        <div className="flex items-center justify-between">
-                          <Label>Логічний оператор</Label>
-                          <Select
-                            value={ruleData.logicalOperator}
-                            onValueChange={(value) => updateField("logicalOperator", value as LogicalOperator)}
-                          >
-                            <SelectTrigger className="w-28">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="AND">І</SelectItem>
-                              <SelectItem value="OR">АБО</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor={`condition-${index}`}>Умова правила {index + 1}</Label>
-                        {index > 0 && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            onClick={() => removeCondition(index)}
-                            className="h-8 w-8"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        )}
+                {ruleData.conditions && ruleData.conditions.map((condition, index) => (
+                  <div 
+                    key={index} 
+                    className={`border p-4 rounded-md ${index > 0 ? 'mt-6' : ''}`}
+                  >
+                    {index > 0 && (
+                      <div className="flex items-center justify-between mb-4">
+                        <Label>Логічний оператор</Label>
+                        <Select
+                          value={ruleData.logicalOperator}
+                          onValueChange={(value) => updateField("logicalOperator", value as LogicalOperator)}
+                        >
+                          <SelectTrigger className="w-28">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="AND">І</SelectItem>
+                            <SelectItem value="OR">АБО</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-                      
-                      {index === 0 && ruleData.description ? (
+                    )}
+                    
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor={`condition-${index}`}>Умова правила {index + 1}</Label>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="inline-flex">
+                                <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <div className="max-w-xs">
+                                <p>Тип значення: {getValueTypeName(condition.valueType)}</p>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      {index > 0 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => removeCondition(index)}
+                          className="h-8 w-8"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                    
+                    {index === 0 && ruleData.description ? (
+                      <div className="mb-4">
                         <Input
                           id={`condition-${index}`}
                           value={condition.condition}
                           onChange={(e) => updateCondition(index, { condition: e.target.value })}
                           readOnly
+                          className="bg-muted/30"
                         />
-                      ) : (
+                      </div>
+                    ) : (
+                      <div className="mb-4">
                         <Select
                           value={condition.condition}
                           onValueChange={(value) => {
                             const template = getConditionTemplate(value);
-                            updateCondition(index, { 
-                              condition: value,
-                              valueType: template?.valueType || "TEXT"
-                            });
+                            if (template) {
+                              updateCondition(index, { 
+                                condition: value,
+                                valueType: template.valueType,
+                                operator: getOperatorOptions(template.valueType)[0]
+                              });
+                            }
                           }}
                         >
                           <SelectTrigger id={`condition-${index}`}>
                             <SelectValue placeholder="Виберіть умову" />
                           </SelectTrigger>
                           <SelectContent>
-                            {ruleTemplates.map((template) => (
+                            {availableTemplates.map((template) => (
                               <SelectItem key={template.condition} value={template.condition}>
                                 {template.condition}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
-                      )}
-
-                      <div className="space-y-2">
-                        <Label htmlFor={`conditionValue-${index}`}>Значення умови</Label>
-                        <ConditionValueInput
-                          condition={condition}
-                          value={condition.value}
-                          onChange={(value) => updateCondition(index, { value })}
-                          onDataMissingChange={(isMissing) => updateCondition(index, { isDataMissing: isMissing })}
-                          isDataMissing={condition.isDataMissing}
-                        />
                       </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <Label htmlFor={`conditionValue-${index}`}>Значення умови</Label>
+                      <ConditionValueInput
+                        condition={condition}
+                        value={condition.value}
+                        onChange={(value) => updateCondition(index, { value })}
+                        onOperatorChange={(operator) => updateCondition(index, { operator })}
+                        onDataMissingChange={(isMissing) => updateCondition(index, { isDataMissing: isMissing })}
+                        isDataMissing={condition.isDataMissing}
+                      />
                     </div>
-                  ))}
-                  
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full mt-2"
-                    onClick={addCondition}
-                  >
-                    <Plus className="h-4 w-4 mr-2" /> Додати умову
-                  </Button>
-                </div>
+                  </div>
+                ))}
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full mt-4"
+                  onClick={addCondition}
+                >
+                  <Plus className="h-4 w-4 mr-2" /> Додати умову
+                </Button>
               </div>
             )}
 
@@ -612,16 +780,16 @@ const RuleDialog: React.FC<RuleDialogProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="edit-description">Опис правила</Label>
+                  <Label htmlFor="edit-description">Правило</Label>
                   <Select
                     value={ruleData.description}
                     onValueChange={handleDescriptionChange}
                   >
                     <SelectTrigger id="edit-description">
-                      <SelectValue placeholder="Виберіть опис правила" />
+                      <SelectValue placeholder="Виберіть правило" />
                     </SelectTrigger>
                     <SelectContent>
-                      {ruleTemplates.map((template) => (
+                      {availableTemplates.map((template) => (
                         <SelectItem key={template.description} value={template.description}>
                           {template.description}
                         </SelectItem>
@@ -630,95 +798,122 @@ const RuleDialog: React.FC<RuleDialogProps> = ({
                   </Select>
                 </div>
 
-                <div className="border p-4 rounded-md">
-                  {ruleData.conditions?.map((condition, index) => (
-                    <div key={index} className="space-y-4 mb-4">
-                      {index > 0 && (
-                        <div className="flex items-center justify-between">
-                          <Label>Логічний оператор</Label>
-                          <Select
-                            value={ruleData.logicalOperator}
-                            onValueChange={(value) => updateField("logicalOperator", value as LogicalOperator)}
-                          >
-                            <SelectTrigger className="w-28">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="AND">І</SelectItem>
-                              <SelectItem value="OR">АБО</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center justify-between">
+                {ruleData.conditions && ruleData.conditions.map((condition, index) => (
+                  <div 
+                    key={index} 
+                    className={`border p-4 rounded-md ${index > 0 ? 'mt-6' : ''}`}
+                  >
+                    {index > 0 && (
+                      <div className="flex items-center justify-between mb-4">
+                        <Label>Логічний оператор</Label>
+                        <Select
+                          value={ruleData.logicalOperator}
+                          onValueChange={(value) => updateField("logicalOperator", value as LogicalOperator)}
+                        >
+                          <SelectTrigger className="w-28">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="AND">І</SelectItem>
+                            <SelectItem value="OR">АБО</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
                         <Label htmlFor={`edit-condition-${index}`}>Умова правила {index + 1}</Label>
-                        {index > 0 && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            onClick={() => removeCondition(index)}
-                            className="h-8 w-8"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        )}
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="inline-flex">
+                                <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <div className="max-w-xs">
+                                <p>Тип значення: {getValueTypeName(condition.valueType)}</p>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                       
-                      {index === 0 && ruleData.description ? (
+                      {index > 0 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => removeCondition(index)}
+                          className="h-8 w-8"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                    
+                    {index === 0 && ruleData.description ? (
+                      <div className="mb-4">
                         <Input
                           id={`edit-condition-${index}`}
                           value={condition.condition}
                           onChange={(e) => updateCondition(index, { condition: e.target.value })}
                           readOnly
+                          className="bg-muted/30"
                         />
-                      ) : (
+                      </div>
+                    ) : (
+                      <div className="mb-4">
                         <Select
                           value={condition.condition}
                           onValueChange={(value) => {
                             const template = getConditionTemplate(value);
-                            updateCondition(index, { 
-                              condition: value,
-                              valueType: template?.valueType || "TEXT"
-                            });
+                            if (template) {
+                              updateCondition(index, { 
+                                condition: value,
+                                valueType: template.valueType,
+                                operator: getOperatorOptions(template.valueType)[0]
+                              });
+                            }
                           }}
                         >
                           <SelectTrigger id={`edit-condition-${index}`}>
                             <SelectValue placeholder="Виберіть умову" />
                           </SelectTrigger>
                           <SelectContent>
-                            {ruleTemplates.map((template) => (
+                            {availableTemplates.map((template) => (
                               <SelectItem key={template.condition} value={template.condition}>
                                 {template.condition}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
-                      )}
-
-                      <div className="space-y-2">
-                        <Label htmlFor={`edit-conditionValue-${index}`}>Значення умови</Label>
-                        <ConditionValueInput
-                          condition={condition}
-                          value={condition.value}
-                          onChange={(value) => updateCondition(index, { value })}
-                          onDataMissingChange={(isMissing) => updateCondition(index, { isDataMissing: isMissing })}
-                          isDataMissing={condition.isDataMissing}
-                        />
                       </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <Label htmlFor={`edit-conditionValue-${index}`}>Значення умови</Label>
+                      <ConditionValueInput
+                        condition={condition}
+                        value={condition.value}
+                        onChange={(value) => updateCondition(index, { value })}
+                        onOperatorChange={(operator) => updateCondition(index, { operator })}
+                        onDataMissingChange={(isMissing) => updateCondition(index, { isDataMissing: isMissing })}
+                        isDataMissing={condition.isDataMissing}
+                      />
                     </div>
-                  ))}
-                  
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full mt-2"
-                    onClick={addCondition}
-                  >
-                    <Plus className="h-4 w-4 mr-2" /> Додати умову
-                  </Button>
-                </div>
+                  </div>
+                ))}
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full mt-4"
+                  onClick={addCondition}
+                >
+                  <Plus className="h-4 w-4 mr-2" /> Додати умову
+                </Button>
               </TabsContent>
 
               <TabsContent value="action" className="space-y-4 pt-4">

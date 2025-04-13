@@ -1,12 +1,19 @@
 
-import { CreditRule } from "@/types/creditRules";
+import { CreditRule, RuleCondition } from "@/types/creditRules";
 
 export const sampleRules: CreditRule[] = [
   {
     id: 2,
     description: "Прострочений борг",
-    condition: "UBKI score",
-    conditionValue: ">100000",
+    conditions: [
+      {
+        condition: "UBKI score",
+        operator: ">",
+        value: "100000",
+        valueType: "NUMBER"
+      }
+    ],
+    logicalOperator: "AND",
     action: "Відмова",
     priority: 2,
     isActive: true,
@@ -19,8 +26,15 @@ export const sampleRules: CreditRule[] = [
   {
     id: 3,
     description: "Раніше закриті кредити",
-    condition: "dbaCloseIsBad",
-    conditionValue: "true",
+    conditions: [
+      {
+        condition: "dbaCloseIsBad",
+        operator: "=",
+        value: "true",
+        valueType: "BOOLEAN"
+      }
+    ],
+    logicalOperator: "AND",
     action: "Відмова",
     priority: 3,
     isActive: true,
@@ -33,8 +47,15 @@ export const sampleRules: CreditRule[] = [
   {
     id: 4,
     description: "Кількість МФО",
-    condition: "donorTypeDealCountCountMFO",
-    conditionValue: ">200",
+    conditions: [
+      {
+        condition: "donorTypeDealCountCountMFO",
+        operator: ">",
+        value: "200",
+        valueType: "NUMBER"
+      }
+    ],
+    logicalOperator: "AND",
     action: "Видача",
     priority: 4,
     isActive: true,
@@ -47,8 +68,15 @@ export const sampleRules: CreditRule[] = [
   {
     id: 5,
     description: "Кредит від своєї компанії",
-    condition: "donorTypeDealCountCountOWN",
-    conditionValue: ">1",
+    conditions: [
+      {
+        condition: "donorTypeDealCountCountOWN",
+        operator: ">",
+        value: "1",
+        valueType: "NUMBER"
+      }
+    ],
+    logicalOperator: "AND",
     action: "Видача",
     priority: 5,
     isActive: false,
@@ -61,8 +89,14 @@ export const sampleRules: CreditRule[] = [
   {
     id: 6,
     description: "КиївУКР, 170-180, простр >90000",
-    condition: "Область: UBKI score, UBKI debt",
-    conditionValue: "Київ, 170-180, >90000",
+    conditions: [
+      {
+        condition: "Область: UBKI score, UBKI debt",
+        value: "Київ, 170-180, >90000",
+        valueType: "COMBINED"
+      }
+    ],
+    logicalOperator: "AND",
     action: "Видача",
     priority: 6,
     isActive: true,
@@ -75,8 +109,14 @@ export const sampleRules: CreditRule[] = [
   {
     id: 7,
     description: "200+",
-    condition: "UBKI score, UBKI debt",
-    conditionValue: ">200, >90000",
+    conditions: [
+      {
+        condition: "UBKI score, UBKI debt",
+        value: ">200, >90000",
+        valueType: "COMBINED"
+      }
+    ],
+    logicalOperator: "AND",
     action: "Видача",
     priority: 7,
     isActive: true,
@@ -89,8 +129,15 @@ export const sampleRules: CreditRule[] = [
   {
     id: 8,
     description: "Анкета простр",
-    condition: "high debt",
-    conditionValue: "<20000",
+    conditions: [
+      {
+        condition: "high debt",
+        operator: "<",
+        value: "20000",
+        valueType: "NUMBER"
+      }
+    ],
+    logicalOperator: "AND",
     action: "Андеррайтинг",
     priority: 8,
     isActive: true,
@@ -103,8 +150,15 @@ export const sampleRules: CreditRule[] = [
   {
     id: 10,
     description: "МФО скор",
-    condition: "UBKI score",
-    conditionValue: ">170",
+    conditions: [
+      {
+        condition: "UBKI score",
+        operator: ">",
+        value: "170",
+        valueType: "NUMBER"
+      }
+    ],
+    logicalOperator: "AND",
     action: "Відмова",
     priority: 10,
     isActive: true,
