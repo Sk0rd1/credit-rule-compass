@@ -12,11 +12,18 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { ActionBadge } from "./ActionBadge";
 import { useCreditRules } from "@/contexts/CreditRulesContext";
-import { CreditRule } from "@/types/creditRules";
-import { Edit, Trash2 } from "lucide-react";
+import { CreditRule, RuleCondition } from "@/types/creditRules";
+import { Edit, Trash2, Info } from "lucide-react";
 import { format } from "date-fns";
 import { uk } from "date-fns/locale";
 import RuleDialog from "./RuleDialog";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
 
 export const RulesTable: React.FC = () => {
   const { filteredRules, toggleRuleActive, deleteRule } = useCreditRules();
@@ -28,19 +35,58 @@ export const RulesTable: React.FC = () => {
     return format(new Date(dateString), "dd.MM.yyyy", { locale: uk });
   };
 
-  const getConditionText = (rule: CreditRule) => {
+  const renderConditions = (rule: CreditRule) => {
     if (!rule.conditions || rule.conditions.length === 0) return "";
-    return rule.conditions.map(c => c.condition).join(", ");
+    
+    return (
+      <div className="space-y-2">
+        {rule.conditions.map((condition, index) => (
+          <div key={index} className="flex flex-col">
+            {index > 0 && (
+              <Badge className="self-start mb-1 bg-blue-100 text-blue-800 hover:bg-blue-100">
+                {rule.logicalOperator === "AND" ? "І" : "АБО"}
+              </Badge>
+            )}
+            <span>{condition.condition}</span>
+          </div>
+        ))}
+      </div>
+    );
   };
 
-  const getConditionValue = (rule: CreditRule) => {
+  const renderValues = (rule: CreditRule) => {
     if (!rule.conditions || rule.conditions.length === 0) return "";
-    return rule.conditions.map(c => c.value).join(", ");
+    
+    return (
+      <div className="space-y-2">
+        {rule.conditions.map((condition, index) => (
+          <div key={index} className={`flex flex-col ${index > 0 ? 'mt-6' : ''}`}>
+            {index > 0 && <div className="h-4"></div>}
+            <div className="flex gap-1 items-center">
+              {condition.operator && <span>{condition.operator}</span>}
+              <span>{condition.value}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
   };
 
-  const getValueType = (rule: CreditRule) => {
+  const renderValueTypes = (rule: CreditRule) => {
     if (!rule.conditions || rule.conditions.length === 0) return "";
-    return rule.conditions.map(c => c.valueType).join(", ");
+    
+    return (
+      <div className="space-y-2">
+        {rule.conditions.map((condition, index) => (
+          <div key={index} className={`flex flex-col ${index > 0 ? 'mt-6' : ''}`}>
+            {index > 0 && <div className="h-4"></div>}
+            <Badge variant="outline" className="self-start">
+              {condition.valueType}
+            </Badge>
+          </div>
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -75,9 +121,9 @@ export const RulesTable: React.FC = () => {
               <TableRow key={rule.id}>
                 <TableCell className="text-center font-medium">{rule.id}</TableCell>
                 <TableCell>{rule.description}</TableCell>
-                <TableCell>{getConditionText(rule)}</TableCell>
-                <TableCell>{getConditionValue(rule)}</TableCell>
-                <TableCell>{getValueType(rule)}</TableCell>
+                <TableCell>{renderConditions(rule)}</TableCell>
+                <TableCell>{renderValues(rule)}</TableCell>
+                <TableCell>{renderValueTypes(rule)}</TableCell>
                 <TableCell className="text-center">
                   <ActionBadge action={rule.action} />
                 </TableCell>

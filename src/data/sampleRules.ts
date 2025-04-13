@@ -3,6 +3,33 @@ import { CreditRule, RuleCondition } from "@/types/creditRules";
 
 export const sampleRules: CreditRule[] = [
   {
+    id: 1,
+    description: "Складне правило з двома умовами",
+    conditions: [
+      {
+        condition: "UBKI score",
+        operator: ">",
+        value: "170",
+        valueType: "NUMBER"
+      },
+      {
+        condition: "donorTypeDealCountCountMFO",
+        operator: "<",
+        value: "3",
+        valueType: "NUMBER"
+      }
+    ],
+    logicalOperator: "AND",
+    action: "Видача",
+    priority: 1,
+    isActive: true,
+    clientType: "Новий",
+    creditProduct: "Онлайн",
+    startDate: "2023-01-01",
+    endDate: null,
+    source: "УБКІ",
+  },
+  {
     id: 2,
     description: "Прострочений борг",
     conditions: [
@@ -146,6 +173,33 @@ export const sampleRules: CreditRule[] = [
     startDate: "2023-02-01",
     endDate: null,
     source: "Скаріста",
+  },
+  {
+    id: 9,
+    description: "Складне правило з двома умовами OR",
+    conditions: [
+      {
+        condition: "UBKI score",
+        operator: "<",
+        value: "50",
+        valueType: "NUMBER"
+      },
+      {
+        condition: "high debt",
+        operator: ">",
+        value: "100000",
+        valueType: "NUMBER"
+      }
+    ],
+    logicalOperator: "OR",
+    action: "Відмова",
+    priority: 9,
+    isActive: true,
+    clientType: "Всі",
+    creditProduct: "Всі",
+    startDate: "2023-01-01",
+    endDate: null,
+    source: "УБКІ",
   },
   {
     id: 10,

@@ -20,7 +20,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useCreditRules } from "@/contexts/CreditRulesContext";
 import { 
   CreditRule, 
@@ -89,16 +88,12 @@ const ConditionValueInput = ({
   condition, 
   value, 
   onChange,
-  onOperatorChange,
-  onDataMissingChange, 
-  isDataMissing = false 
+  onOperatorChange
 }: { 
   condition: RuleCondition, 
   value: string, 
   onChange: (value: string) => void,
-  onOperatorChange: (operator: ConditionOperator) => void,
-  onDataMissingChange: (isMissing: boolean) => void,
-  isDataMissing?: boolean
+  onOperatorChange: (operator: ConditionOperator) => void
 }) => {
   const template = getConditionTemplate(condition.condition);
   
@@ -109,7 +104,6 @@ const ConditionValueInput = ({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Введіть значення умови"
-          disabled={isDataMissing}
         />
       </div>
     );
@@ -128,7 +122,6 @@ const ConditionValueInput = ({
             <Select
               value={value}
               onValueChange={onChange}
-              disabled={isDataMissing}
             >
               <SelectTrigger className="flex-1">
                 <SelectValue placeholder="Виберіть значення" />
@@ -153,7 +146,6 @@ const ConditionValueInput = ({
               type="date"
               value={value}
               onChange={(e) => onChange(e.target.value)}
-              disabled={isDataMissing}
               className="flex-1"
             />
           </div>
@@ -175,7 +167,6 @@ const ConditionValueInput = ({
                   const endDate = value.split(" - ")[1] || "";
                   onChange(`${e.target.value}${endDate ? " - " + endDate : ""}`);
                 }}
-                disabled={isDataMissing}
                 className="flex-1"
               />
               <span>-</span>
@@ -186,7 +177,6 @@ const ConditionValueInput = ({
                   const startDate = value.split(" - ")[0] || "";
                   onChange(`${startDate}${startDate ? " - " : ""}${e.target.value}`);
                 }}
-                disabled={isDataMissing}
                 className="flex-1"
               />
             </div>
@@ -204,10 +194,8 @@ const ConditionValueInput = ({
             <Select
               value={value}
               onValueChange={onChange}
-              disabled={isDataMissing}
-              className="flex-1"
             >
-              <SelectTrigger>
+              <SelectTrigger className="flex-1">
                 <SelectValue placeholder="Виберіть значення" />
               </SelectTrigger>
               <SelectContent>
@@ -232,7 +220,6 @@ const ConditionValueInput = ({
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 placeholder={template.format || "Введіть список значень, розділених комами"}
-                disabled={isDataMissing}
                 className="flex-1"
               />
             </div>
@@ -252,7 +239,6 @@ const ConditionValueInput = ({
               value={value}
               onChange={(e) => onChange(e.target.value)}
               placeholder={template.format || "Введіть число"}
-              disabled={isDataMissing}
               className="flex-1"
             />
           </div>
@@ -265,7 +251,6 @@ const ConditionValueInput = ({
               value={value}
               onChange={(e) => onChange(e.target.value)}
               placeholder={template.format || "Введіть комбіноване значення"}
-              disabled={isDataMissing}
             />
           </div>
         );
@@ -282,7 +267,6 @@ const ConditionValueInput = ({
               value={value}
               onChange={(e) => onChange(e.target.value)}
               placeholder={template.format || "Введіть значення"}
-              disabled={isDataMissing}
               className="flex-1"
             />
           </div>
@@ -299,19 +283,6 @@ const ConditionValueInput = ({
         </div>
       )}
       {renderInput()}
-      <div className="flex items-center space-x-2">
-        <Checkbox 
-          id={`missing-data-${condition.condition}`} 
-          checked={isDataMissing}
-          onCheckedChange={(checked) => onDataMissingChange(checked === true)}
-        />
-        <label 
-          htmlFor={`missing-data-${condition.condition}`}
-          className="text-sm cursor-pointer"
-        >
-          Дані відсутні
-        </label>
-      </div>
     </div>
   );
 };
@@ -349,7 +320,7 @@ const RuleDialog: React.FC<RuleDialogProps> = ({
   );
   
   // State for available rule templates based on selected source
-  const [availableTemplates, setAvailableTemplates] = useState<RuleTemplate[]>(
+  const [availableTemplates, setAvailableTemplates] = useState(
     ruleTemplatesBySource[ruleData.source as RuleSource] || []
   );
 
@@ -610,8 +581,6 @@ const RuleDialog: React.FC<RuleDialogProps> = ({
                         value={condition.value}
                         onChange={(value) => updateCondition(index, { value })}
                         onOperatorChange={(operator) => updateCondition(index, { operator })}
-                        onDataMissingChange={(isMissing) => updateCondition(index, { isDataMissing: isMissing })}
-                        isDataMissing={condition.isDataMissing}
                       />
                     </div>
                   </div>
@@ -899,8 +868,6 @@ const RuleDialog: React.FC<RuleDialogProps> = ({
                         value={condition.value}
                         onChange={(value) => updateCondition(index, { value })}
                         onOperatorChange={(operator) => updateCondition(index, { operator })}
-                        onDataMissingChange={(isMissing) => updateCondition(index, { isDataMissing: isMissing })}
-                        isDataMissing={condition.isDataMissing}
                       />
                     </div>
                   </div>
